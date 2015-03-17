@@ -39,22 +39,23 @@ impl Image {
         let mut line = String::new();
         try!(buffered.read_line(&mut line));
         assert!(line.trim() == "P6");
-        try!(buffered.read_line(&mut line));
+        line.clear();
 
+        try!(buffered.read_line(&mut line));
         let (width, height) : (u32, u32) = {
             let dims : Vec<&str> = line.split(' ').collect();
             assert!(dims.len() == 2, "could not read dimensions");
             (::std::str::FromStr::from_str(dims[0].trim()).unwrap(),
              ::std::str::FromStr::from_str(dims[1].trim()).unwrap())
         };
+        line.clear();
 
         try!(buffered.read_line(&mut line));
         assert!(line.trim() == "255");
+        line.clear();
 
         let mut result = Image { width : width, height : height, pixels : Vec::new() };
-
         let mut bytes = buffered.bytes();
-
         for _ in 0..width * height {
             result.pixels.push(
                 Pixel {
@@ -145,8 +146,14 @@ pub fn main () -> Result<(), zmq::Error> {
         }
         try!(capnp_zmq::send(&mut publisher, &mut message));
 
-        // XXX we need thread::sleep
-        //std::io::timer::sleep(std::time::Duration::milliseconds(5));
+        // TODO switch to thread::sleep once it exists.
+        unsafe {
+            let req = ::libc::types::os::common::posix01::timespec {
+                tv_sec : 0,
+                tv_nsec : 5000000, // 5 milliseconds
+            };
+            ::libc::funcs::posix88::unistd::nanosleep(&req, ::std::ptr::null_mut());
+        }
     }
 
 }
