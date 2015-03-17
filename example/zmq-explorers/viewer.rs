@@ -14,7 +14,7 @@ fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) ->
     use std::io::Write;
     use std::num::Float;
     let writer = try!(std::fs::File::create(path));
-    let mut buffered = writer; // TODO: buffer it
+    let mut buffered = ::std::io::BufWriter::new(writer);
     try!(buffered.write_all(b"P6\n"));
 
     let cells = grid.get_cells().unwrap();
