@@ -33,45 +33,37 @@ impl Image {
 
     // quick and dirty parsing of a PPM image
     fn load(file : &std::path::Path) -> std::io::Result<Image> {
-        match std::fs::File::open(file) {
-            Err(_e) => panic!("could not open"),
-            Ok(reader) => {
-                let _buffered = reader; // TODO make this buffered.
-                unimplemented!();
-                /*
-                match buffered.read_line() {
-                    Ok(s) => {
-                        assert!(s.as_slice().trim() == "P6");
-                    }
-                    Err(_e) => panic!("premature end of file")
-                }
-                let (width, height) : (u32, u32) = match buffered.read_line() {
-                    Ok(s) => {
-                        let dims : Vec<&str> = s.as_slice().split(' ').collect();
-                        if dims.len() != 2 { panic!("could not read dimensions") }
-                        (::std::str::FromStr::from_str(dims[0].trim()).unwrap(),
-                         ::std::str::FromStr::from_str(dims[1].trim()).unwrap())
-                    }
-                    Err(_e) => { panic!("premature end of file") }
-                };
-                match buffered.read_line() {
-                    Ok(s) => { assert!(s.as_slice().trim() == "255") }
-                    Err(_e) => panic!("premature end of file")
-                }
+        use std::io::{BufRead, Read};
+        let file = try!(std::fs::File::open(file));
+        let mut buffered = ::std::io::BufReader::new(file);
+        let mut line = String::new();
+        try!(buffered.read_line(&mut line));
+        assert!(line.trim() == "P6");
+        try!(buffered.read_line(&mut line));
 
-                let mut result = Image { width : width, height : height, pixels : Vec::new() };
-                for _ in 0..width * height {
-                    result.pixels.push(
-                        Pixel {
-                            red : unimplemented!(), //try!(buffered.read_u8()),
-                            green : unimplemented!(), //try!(buffered.read_u8()),
-                            blue : unimplemented!(), //try!(buffered.read_u8())
-                        });
-                }
-                return Ok(result);
-                 */
-            }
+        let (width, height) : (u32, u32) = {
+            let dims : Vec<&str> = line.split(' ').collect();
+            assert!(dims.len() == 2, "could not read dimensions");
+            (::std::str::FromStr::from_str(dims[0].trim()).unwrap(),
+             ::std::str::FromStr::from_str(dims[1].trim()).unwrap())
+        };
+
+        try!(buffered.read_line(&mut line));
+        assert!(line.trim() == "255");
+
+        let mut result = Image { width : width, height : height, pixels : Vec::new() };
+
+        let mut bytes = buffered.bytes();
+
+        for _ in 0..width * height {
+            result.pixels.push(
+                Pixel {
+                    red : try!(bytes.next().expect("error reading red value")),
+                    green : try!(bytes.next().expect("error reading green value")),
+                    blue : try!(bytes.next().expect("error reading blue value")),
+                });
         }
+        return Ok(result);
     }
 
     fn get_pixel(&self, x : u32, y : u32) -> Pixel {
