@@ -25,7 +25,7 @@ fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) ->
     try!(buffered.write(format!("{} {}\n", width, height).as_bytes()));
     try!(buffered.write(b"255\n"));
 
-    for x in range(0, width) {
+    for x in 0..width {
         assert!(cells.get(x).unwrap().len() == height);
     }
 
@@ -77,8 +77,8 @@ pub fn main() -> Result<(), zmq::Error> {
         try!(requester.send(&[], 0));
 
         let frames = try!(capnp_zmq::recv(&mut requester));
-        let segments = capnp_zmq::frames_to_segments(frames.as_slice());
-        let reader = capnp::message::SegmentArrayMessageReader::new(segments.as_slice(),
+        let segments = capnp_zmq::frames_to_segments(&frames);
+        let reader = capnp::message::SegmentArrayMessageReader::new(&segments,
                                                                     capnp::message::DEFAULT_READER_OPTIONS);
         let grid = reader.get_root::<grid::Reader>().unwrap();
 

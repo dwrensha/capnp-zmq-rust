@@ -1,6 +1,6 @@
 #![crate_name="zmq-explorers"]
 #![crate_type = "bin"]
-
+#![feature(exit_status, io)]
 
 extern crate capnp;
 extern crate capnp_zmq;
@@ -20,29 +20,27 @@ pub mod viewer;
 
 fn usage(s : &str) {
     println!("usage: {} [explorer|collector|viewer]", s);
-    std::os::set_exit_status(1);
+    std::env::set_exit_status(1);
 }
 
 pub fn main() {
-
-    let args = std::os::args();
-
+    let args : Vec<String> = ::std::env::args().collect();
     if args.len() < 2 {
-        usage(args[0].as_slice());
+        usage(&args[0]);
         return;
     }
 
-    let result = match args[1].as_slice() {
+    let result = match &*args[1] {
         "explorer" => explorer::main(),
         "collector" => collector::main(),
         "viewer" => viewer::main(),
-        _ => { usage(args[0].as_slice()); Ok(()) }
+        _ => { usage(&args[0]); Ok(()) }
     };
 
     match result {
         Ok(()) => {}
         Err(e) => {
-            std::os::set_exit_status(1);
+            std::env::set_exit_status(1);
             println!("{}", e)
         },
     }

@@ -36,7 +36,7 @@ impl Image {
         match std::fs::File::open(file) {
             Err(_e) => panic!("could not open"),
             Ok(reader) => {
-                let mut buffered = reader; // TODO make this buffered.
+                let _buffered = reader; // TODO make this buffered.
                 unimplemented!();
                 /*
                 match buffered.read_line() {
@@ -112,22 +112,22 @@ fn add_diagnostic<'a>(obs : observation::Builder<'a>) {
         let mut warning = String::new();
         warning.push_str(*rng.choose(&WORDS).unwrap());
         warning.push_str(" ");
-        warning.push_str(rng.gen_ascii_chars().take(8).collect::<String>().as_slice());
+        warning.push_str(&rng.gen_ascii_chars().take(8).collect::<String>());
         warning.push_str(" ");
         warning.push_str(*rng.choose(&WORDS).unwrap());
-        obs.init_diagnostic().set_warning(warning.as_slice());
+        obs.init_diagnostic().set_warning(&warning);
     }
 }
 
 pub fn main () -> Result<(), zmq::Error> {
 
-    let args = std::os::args();
+    let args : Vec<String> = ::std::env::args().collect();
     if args.len() != 3 {
         println!("usage: {:?} explorer [filename]", args.get(0));
         return Ok(());
     }
 
-    let image = Image::load(&std::path::Path::new(args[2].as_slice())).unwrap();
+    let image = Image::load(&std::path::Path::new(&args[2])).unwrap();
 
     let mut context = zmq::Context::new();
     let mut publisher = try!(context.socket(zmq::PUB));
