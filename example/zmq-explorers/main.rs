@@ -1,13 +1,18 @@
 #![crate_name="zmq-explorers"]
 #![crate_type = "bin"]
 
-extern crate zmq;
+
 extern crate capnp;
+extern crate capnp_zmq;
+extern crate libc;
 extern crate rand;
 extern crate time;
+extern crate zmq;
 
-pub mod capnp_zmq;
-pub mod explorers_capnp;
+pub mod explorers_capnp {
+  include!(concat!(env!("OUT_DIR"), "/explorers_capnp.rs"));
+}
+
 pub mod explorer;
 pub mod collector;
 pub mod viewer;

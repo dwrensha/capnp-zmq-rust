@@ -1,0 +1,20 @@
+[package]
+
+name = "capnp_zmq"
+version = "0.0.1"
+authors = [ "David Renshaw <david@sandstorm.io>" ]
+license = "MIT"
+description = "Cap'n Proto and ZeroMQ"
+repository = "https://github.com/dwrensha/capnp-zmq-rust"
+
+readme = "README.md"
+
+[lib]
+name = "capnp_zmq"
+path = "capnp_zmq.rs"
+
+[dependencies]
+capnp = "0.1.25"
+
+[dependencies.zmq]
+git = "https://github.com/erickt/rust-zmq.git"

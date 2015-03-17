@@ -3,41 +3,43 @@ use zmq;
 use capnp_zmq;
 use std;
 use time;
-use explorers_capnp::Grid;
+use explorers_capnp::grid;
 
 enum OutputMode {
     Colors,
     Confidence
 }
 
-fn write_ppm(path : &std::path::Path, grid : Grid::Reader, mode : OutputMode) -> std::io::IoResult<()> {
-    let writer = try!(std::io::File::open_mode(path, std::io::Truncate, std::io::Write));
-    let mut buffered = std::io::BufferedWriter::new(writer);
-    try!(buffered.write(b"P6\n"));
+fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) -> std::io::Result<()> {
+    use std::io::Write;
+    use std::num::Float;
+    let writer = try!(std::fs::File::create(path));
+    let mut buffered = writer; // TODO: buffer it
+    try!(buffered.write_all(b"P6\n"));
 
-    let cells = grid.get_cells();
-    let width = cells.size();
+    let cells = grid.get_cells().unwrap();
+    let width = cells.len();
     assert!(width > 0);
-    let height = cells.get(0).size();
+    let height = cells.get(0).unwrap().len();
 
     try!(buffered.write(format!("{} {}\n", width, height).as_bytes()));
     try!(buffered.write(b"255\n"));
 
     for x in range(0, width) {
-        assert!(cells.get(x).size() == height);
+        assert!(cells.get(x).unwrap().len() == height);
     }
 
-    for y in range(0, height) {
-        for x in range(0, width) {
-            let cell = cells.get(x).get(y);
+    for y in 0..height {
+        for x in 0..width {
+            let cell = cells.get(x).unwrap().get(y);
 
             match mode {
-                Colors => {
-                    try!(buffered.write_u8((cell.get_mean_red()).floor() as u8));
-                    try!(buffered.write_u8((cell.get_mean_green()).floor() as u8));
-                    try!(buffered.write_u8((cell.get_mean_blue()).floor() as u8));
+                OutputMode::Colors => {
+                    try!(buffered.write_all(&[(cell.get_mean_red()).floor() as u8]));
+                    try!(buffered.write_all(&[cell.get_mean_green().floor() as u8]));
+                    try!(buffered.write_all(&[cell.get_mean_blue().floor() as u8]));
                 }
-                Confidence => {
+                OutputMode::Confidence => {
                     let mut age = time::now().to_timespec().sec - cell.get_latest_timestamp();
                     if age < 0 { age = 0 };
                     age *= 25;
@@ -48,11 +50,11 @@ fn write_ppm(path : &std::path::Path, grid : Grid::Reader, mode : OutputMode) ->
                     n *= 10;
                     if n > 255 { n = 255 };
 
-                    try!(buffered.write_u8(0 as u8));
+                    try!(buffered.write_all(&[0]));
 
-                    try!(buffered.write_u8(n as u8));
+                    try!(buffered.write_all(&[n as u8]));
 
-                    try!(buffered.write_u8(age as u8));
+                    try!(buffered.write_all(&[age as u8]));
                 }
             }
         }
@@ -69,26 +71,28 @@ pub fn main() -> Result<(), zmq::Error> {
 
     try!(requester.connect("tcp://localhost:5556"));
 
-    let mut c : uint = 0;
+    let mut c : u32 = 0;
 
     loop {
-        try!(requester.send([], 0));
+        try!(requester.send(&[], 0));
 
         let frames = try!(capnp_zmq::recv(&mut requester));
         let segments = capnp_zmq::frames_to_segments(frames.as_slice());
         let reader = capnp::message::SegmentArrayMessageReader::new(segments.as_slice(),
-                                                                    capnp::message::DefaultReaderOptions);
-        let grid = reader.get_root::<Grid::Reader>();
+                                                                    capnp::message::DEFAULT_READER_OPTIONS);
+        let grid = reader.get_root::<grid::Reader>().unwrap();
 
         println!("{}", grid.get_latest_timestamp());
 
-        let filename = std::path::Path::new(format!("colors{:05}.ppm", c));
-        write_ppm(&filename, grid, Colors).unwrap();
+        write_ppm(&std::path::Path::new(&format!("colors{:05}.ppm", c)),
+                  grid, OutputMode::Colors).unwrap();
 
-        let filename = std::path::Path::new(format!("conf{:05}.ppm", c));
-        write_ppm(&filename, grid, Confidence).unwrap();
+        write_ppm(&std::path::Path::new(&format!("conf{:05}.ppm", c)),
+                  grid, OutputMode::Confidence).unwrap();
 
         c += 1;
-        std::io::timer::sleep(std::time::Duration::seconds(5));
+
+        // Sleep for five seconds.
+        unsafe { ::libc::funcs::posix88::unistd::sleep(5); }
     }
 }
