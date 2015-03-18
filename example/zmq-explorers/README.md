@@ -16,6 +16,6 @@ In three separate terminals:
 
 ```
 $ cargo run collector
-$ cargo run explorer ~/Desktop/rust_logo.ppm
+$ cargo run explorer rust_logo.ppm
 $ cargo run viewer
 ```
