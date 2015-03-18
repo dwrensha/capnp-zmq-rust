@@ -13,6 +13,7 @@ enum OutputMode {
 fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) -> std::io::Result<()> {
     use std::io::Write;
     use std::num::Float;
+    println!("writing to file: {:?}", path);
     let writer = try!(std::fs::File::create(path));
     let mut buffered = ::std::io::BufWriter::new(writer);
     try!(buffered.write_all(b"P6\n"));
