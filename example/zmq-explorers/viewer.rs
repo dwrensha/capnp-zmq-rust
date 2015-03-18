@@ -29,6 +29,9 @@ fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) ->
         assert!(cells.get(x).unwrap().len() == height);
     }
 
+    // Urgh. The cells are stored as columns, but ppm format wants the pixels in row-major order. So
+    // we end up dereferencing pointers more than we'd like here. This is why We see the traversal
+    // limit to the maximum in the main loop.
     for y in 0..height {
         for x in 0..width {
             let cell = cells.get(x).unwrap().get(y);
@@ -78,11 +81,14 @@ pub fn main() -> Result<(), zmq::Error> {
 
         let frames = try!(capnp_zmq::recv(&mut requester));
         let segments = capnp_zmq::frames_to_segments(&frames);
-        let reader = capnp::message::SegmentArrayMessageReader::new(&segments,
-                                                                    capnp::message::DEFAULT_READER_OPTIONS);
+        let reader = capnp::message::SegmentArrayMessageReader::new(
+            &segments,
+            *capnp::message::ReaderOptions::new().traversal_limit_in_words(0xffffffffffffffff));
+
         let grid = reader.get_root::<grid::Reader>().unwrap();
 
-        println!("{}", grid.get_latest_timestamp());
+        println!("timestamp: {}", grid.get_latest_timestamp());
+        println!("word count: {}", grid.total_size().unwrap().word_count);
 
         write_ppm(&std::path::Path::new(&format!("colors{:05}.ppm", c)),
                   grid, OutputMode::Colors).unwrap();
