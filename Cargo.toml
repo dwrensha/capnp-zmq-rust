@@ -1,6 +1,6 @@
 [package]
 
-name = "capnp_zmq"
+name = "capnp-zmq"
 version = "0.0.1"
 authors = [ "David Renshaw <david@sandstorm.io>" ]
 license = "MIT"

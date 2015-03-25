@@ -31,7 +31,7 @@ fn write_ppm(path : &std::path::Path, grid : grid::Reader, mode : OutputMode) ->
     }
 
     // Urgh. The cells are stored as columns, but ppm format wants the pixels in row-major order. So
-    // we end up dereferencing pointers more than we'd like here. This is why We see the traversal
+    // we end up dereferencing pointers more than we'd like here. This is why we set the traversal
     // limit to the maximum in the main loop.
     for y in 0..height {
         for x in 0..width {

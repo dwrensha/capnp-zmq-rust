@@ -25,5 +25,5 @@ rand = "0.2.0"
 [dependencies.zmq]
 git = "https://github.com/erickt/rust-zmq.git"
 
-[dependencies.capnp_zmq]
+[dependencies.capnp-zmq]
 path = "../../"
