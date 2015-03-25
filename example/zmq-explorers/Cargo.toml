@@ -1,6 +1,6 @@
 [package]
 
-name = "zmq-explorers"
+name = "zmq_explorers"
 version = "0.0.1"
 authors = [ "David Renshaw <david@sandstorm.io>" ]
 license = "MIT"
@@ -10,7 +10,7 @@ readme = "README.md"
 build = "build.rs"
 
 [[bin]]
-name = "zmq-explorers"
+name = "zmq_explorers"
 path = "main.rs"
 
 [build-dependencies]
