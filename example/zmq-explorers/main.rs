@@ -1,5 +1,3 @@
-#![crate_name="zmq-explorers"]
-#![crate_type = "bin"]
 #![feature(exit_status)]
 
 extern crate capnp;

@@ -1,6 +1,3 @@
-#![crate_name="capnp_zmq"]
-#![crate_type = "lib"]
-
 extern crate capnp;
 extern crate zmq;
 
