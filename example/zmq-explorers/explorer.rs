@@ -7,13 +7,12 @@ use capnp_zmq;
 use explorers_capnp::observation;
 use time;
 
+#[derive(Clone, Copy)]
 struct Pixel {
     red : u8,
     green : u8,
     blue : u8
 }
-
-impl Copy for Pixel {}
 
 fn fudge(x : u8) -> u8 {
     let error = ::rand::thread_rng().gen_range::<i16>(-60, 60);
@@ -74,7 +73,6 @@ impl Image {
     }
 
     fn take_measurement(&self, x : f32, y : f32, mut obs : observation::Builder) {
-        use std::num::Float;
         assert!(x >= 0.0); assert!(y >= 0.0); assert!(x < 1.0); assert!(y < 1.0);
 
         obs.set_timestamp(time::now().to_timespec().sec);

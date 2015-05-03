@@ -13,8 +13,7 @@ pub fn frames_to_segments<'a>(frames : &'a [zmq::Message] ) -> Vec<&'a [::capnp:
     let mut result : Vec<&'a [::capnp::Word]> = Vec::new();
     for frame in frames.iter() {
         unsafe {
-            let slice = frame.with_bytes(|v|
-                    std::slice::from_raw_parts(v.as_ptr(), v.len() / 8));
+            let slice = std::slice::from_raw_parts(frame.as_ptr(), frame.len() / 8);
 
             // TODO check whether bytes are aligned on a word boundary.
             // If not, copy them into a new buffer. Who will own that buffer?

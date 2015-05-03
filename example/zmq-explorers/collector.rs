@@ -8,7 +8,6 @@ static GRID_HEIGHT : u32 = 120;
 pub fn main() -> Result<(), zmq::Error> {
     use explorers_capnp::{observation, grid};
     use capnp::message::{MessageReader, MessageBuilder};
-    use std::num::Float;
 
     let mut context = zmq::Context::new();
     let mut subscriber = try!(context.socket(zmq::SUB));
